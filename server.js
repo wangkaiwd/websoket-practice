@@ -1,22 +1,24 @@
-const app = require('express')();
+const express = require('express');
+const app = express();
 const WebSocket = require('ws');
-
-const wss = new WebSocket.Server({ port: 8080 });
-
-wss.on('connection', function connection (ws) {
-  console.log('server: receive connection.');
-
-  ws.on('message', function incoming (message) {
-    console.log('server: received: %s', message);
+const SW_PORT = 8080;
+const SERVER_PORT = 3000;
+const wss = new WebSocket.Server({ port: SW_PORT });
+let timerId = null;
+wss.on('connection', (ws) => {
+  ws.on('message', (message) => {
+    console.log('服务器接收：', message);
   });
-
-  ws.send('world');
+  let i = 0;
+  timerId = setInterval(() => {
+    i++;
+    ws.send('我是服务端' + i);
+  }, 1000);
 });
-
-app.get('/', function (req, res) {
-  res.sendfile(__dirname + '/index.html');
+wss.on('close', () => {
+  clearInterval(timerId);
+  timerId = null;
 });
-
-app.listen(3000, () => {
-  `port is listening on ${8080}`;
+app.listen(SERVER_PORT, () => {
+  console.log(`port is listening on ${SERVER_PORT}`);
 });
